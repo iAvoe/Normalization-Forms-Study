@@ -5,7 +5,9 @@
 
 **Dependency:**
  - Restaruant --> Dish, Restaruant --> Delivery Area, Dish -× Delivery Area (4NF unsatisfied)
+   - 2 Functional Dependencies (FD), 1 Transitive Dependencies (TD) as Rest.-->DArea
  - Salesman --> Product, Salesman --> Product brand, Brand --> Product (5NF unsatisfied)
+   - 3FD, 2TD
 
 **0th Normal Form (0NF):**
  - un-normalized model - multiple-to-1 mapping
@@ -69,15 +71,75 @@
 **Types of 2NF anomalies:**
  - insertion (cannot insert a new item without corresponding attribute from it)
  - deletion (deleting item attribute will cause data loss of the distributor)
- - update (phone number gets duplicated by amount of purchases)
+ - update (phone number col. gets duplicated by amount of purchases)
    - less vulnerble than 1NF, however
 
+**Explain Super Key & Candidate Key**
+ - A set of one or more attributes (columns), which can uniquely identify a row in a table (forming FD)
+ - Candidate key is selected from the set of super keys
+   - CK should not have redundant attribute - minimal super key
+ - Example: all 3 column headings are super keys
+   - SKs: {Emp_SSN}, {Emp_Number}, {Emp_SSN, Emp_Number}, {Emp_SSN, Emp_Name}, {Emp_SSN, Emp_Number, Emp_Name}, {Emp_Number, Emp_Name}
+   - Minimalized SKs becomes cadidates - {Emp_SSN}, {Emp_Number}
+
+| Emp_SSN   | Emp_Number | Emp_Name  |
+|-----------|------------|-----------|
+| 123456789 | 226        | Steve     |
+| 999999321 | 227        | Ajeet     |
+| 888997212 | 228        | Chaitanya |
+| 777778888 | 229        | Robert    |
+
 **3rd Normal Form (3NF):**
- - filtering: functionally dependent SOLELY on the PK, outer values are moved to other tables
- - ×transitive dependencies for non-PKs
+ - filtering: functionally dependent SOLELY on the PK, miltu-dependances are moved to other tables
+ - ×transitive dependency (TD) for non-PKs - split table if unsatisfied
 
 **Explain transitive dependency (TD):**
  - If A-->B, B-->C are 2 functional dependencies (FD), then A--(TD)->C
+
+**Example of 0~3NF + ERD:**
+
+![Purchase order 1](Purchase1.png)
+![Purchase order 2](Purchase2.png)
+
+ - Keys: Order date, P.O. #, Vendor ID, Vendor name, Address, City, Prov, Postal, Purchase line, Qty, Item ID, Item name, Unit price, Line total, Total
+
+ - **0NF:** multiple-to-1 mapping:
+![0NF](0NF-purch.png)
+
+ - **1NF:** 1-to-1 mapping, calculated value (Line total, total) removed:
+![1NF](1NF-purch.png)
+
+ - **2NF:** Find Functional Dependencies (FDs)
+   - *Keys dependent on PO_No:*
+      - Order_date
+      - Vendor_ID
+      - Name
+      - Address, City, Prov, Postal
+   - *Keys dependent on {PO_No, Line}*
+      - Qty
+      - Item ID
+      - Description
+      - Price
+   - Create 2NF table by splitting 1NF based on these values:
+
+ - **3NF:** Removal of multi-dependace
+   - `[dbo.PO_headers]` = {PO_No} {Order_date} {Vendor_ID}
+   - `[dbo.Vendors]`       = {Vendor_ID} {Name} {Address} {City} {Prov} {Postal}
+   - `[dbo.Items]`           = {Item_ID} {Description} {Price}
+   - `[dbo.PO_lines]`      = {PO_No} {Line} {Qty} {Item_ID}
+ 
+ - **Creating ERD out of 3NF**
+   - `[dbo.PO_headers]` = PK{PO_No} {Order_date} FK{Vendor_ID}
+   - `[dbo.Vendors]`       = PK{Vendor_ID} {Name} {Address} {City} {Prov} {Postal}
+   - `[dbo.Items]`           = PK{Item_ID} {Description} {Price}
+   - `[dbo.PO_lines]`      = PKFK{PO_No} {Line} {Qty} FK2{Item_ID}
+
+   - `[dbo.PO_headers]` one to many towards `[dbo.PO_lines]`
+   - `[dbo.Vendors]`       one to many towards `[dbo.PO_headers]`
+   - `[dbo.Items]`           one to many towards `[dbo.PO_lines]`
+   - `[dbo.PO_lines]`     
+
+
 
 **Boyce Codd Normal Form (BCNF, 3.5NF):**
  - ×non-trivial dependency (PK-Key is not the only possible relationship of a key) 
