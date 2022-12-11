@@ -134,12 +134,20 @@
    - `[dbo.Items]`           = PK{Item_ID} {Description} {Price}
    - `[dbo.PO_lines]`      = PKFK{PO_No} {Line} {Qty} FK2{Item_ID}
 
+
    - `[dbo.PO_headers]` one to many towards `[dbo.PO_lines]`
    - `[dbo.Vendors]`       one to many towards `[dbo.PO_headers]`
    - `[dbo.Items]`           one to many towards `[dbo.PO_lines]`
    - `[dbo.PO_lines]`     
 
-
+**Online Transaction Processing (OLTP)**
+ - Emphasizes speed and simplicity of access over data integrity
+   - Explicitly de-normalized for this purpose
+   - Also known as Big Data, Data Warehouse
+ - Business Intelligence (BI) tools work with OLAP data to provide end users with the ability to analyze and report 
+   - Data in an OLAP database is often conceptualized around the concept of a cube
+   - BI tools allow slicing, dicing, drilling down
+    - Data analysis by "click chart to zoom" topology
 
 **Boyce Codd Normal Form (BCNF, 3.5NF):**
  - ×non-trivial dependency (PK-Key is not the only possible relationship of a key) 
