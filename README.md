@@ -1,5 +1,5 @@
-***Normalization:**
- - data organization
+**Normalization:**
+ - data organization and simplification
  - could make data mode complex - more tables
  - could make query more complex - more joins
 
@@ -8,17 +8,40 @@
  - Salesman --> Product, Salesman --> Product brand, Brand --> Product (5NF unsatisfied)
 
 **0th Normal Form (0NF):**
- - un-normalized model - multiple values in 1 column to match multiple rows
+ - un-normalized model - multiple-to-1 mapping
  - calculated values in the same table w/ supporting data
 
+ |     STU_NO    |     FEE                           |     PAID             |     AMOUNT                          |
+|---------------|-----------------------------------|----------------------|-------------------------------------|
+|     302910    |     Co-op     Parking     Site    |     Y     N     Y    |     400.00     150.00     100.00    |
+|     319825    |     Parking     Site              |     Y     Y          |     150.00     100.00               |
+|     327447    |     Site                          |     Y                |     100.00                          |
+|     349223    |     Parking     Site              |     Y     N          |     150.00     100.00               |
+
 **1st Normal Form (1NF):**
- - ×duplicated attributes - split multi-valued columns
- - ×calculated values in the same table w/ supporting data
+ - does not eliminate redundancy, but rather eliminate repeating groups
+ - ×duplicated mapping - √1 to 1 mapping (columns are still multi-valued)
  - lack of PK
+
+ |     STU_NO                          |     FEE                           |     PAID             |     AMOUNT                          |
+|-------------------------------------|-----------------------------------|----------------------|-------------------------------------|
+|     302910     302910     302910    |     Co-op     Parking     Site    |     Y     N     Y    |     400.00     150.00     100.00    |
+|     319825     319825               |     Parking     Site              |     Y     Y          |     150.00     100.00               |
+|     327447                          |     Site                          |     Y                |     100.00                          |
+|     349223     349223               |     Parking     Site              |     Y     N          |     150.00     100.00               |
+
+**Explain anomaly:** an inconsistency of data (e.g., payment becomes w/out ID) resulting from update, insertion, or deletion == the 3 types of anomalies
+
+**If the information on STU_NO 302910 is dropped, a deletion anomaly arises. What does this mean?**
+Information is lost - Amount for Co-op
+
+**Types of anomalies:** update, deletion, & insertion anomalies
 
 **2nd Normal Form (2NF):**
  - remove attributes that are not dependent on whole PK
- - ×lack of PK - a proper PK is elected (rule: functionally dependent on any proper subset)
+ - ×lack of PK - PK is elected (rule: functionally dependent on any proper subset)
+ 
+
 
 **3rd Normal Form (3NF):**
  - filtering: functionally dependent SOLELY on the PK, outer values are moved to other tables
