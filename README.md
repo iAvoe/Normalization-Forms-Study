@@ -236,7 +236,6 @@ BEGIN TRANSACTION T1;
   PRINT '--- COMMIT ---'
 COMMIT TRANSACTION;
 
-
 **Concurrency Control / avoid integrity, consistency problems**:
  - simultaneous update from multiple users
  - late rollback execution causes uncommitted data being handled by other user
@@ -260,15 +259,14 @@ COMMIT TRANSACTION;
  - 2 transactions cannot have conflicting locks
  - No unlock operation can procede a lock operation in the same transaction
  - No data are affected until all locks have been obtained
-
+ - 
  - Shared lock (S): 1 user to read a record, others could read, no one could modify
-
+ - 
  - Update lock (U): a temporary state before exclusive lock
 An update lock can be placed only if no other update or exclusive lock exists
 Which it can be placed on objects that already have shared locks
-
+ - 
  - Exclusive lock (X): 1 user to modify a record, others could not read or modify
-
 
 **Which SQL statement results in a shared lock? SELECT**: on rows; 
 
@@ -298,3 +296,25 @@ Which it can be placed on objects that already have shared locks
  - the log has either logical operation performed, or before-after images of modified data
 
 **Recovery operation**: restore to latest backup, then applies the transaction log
+
+**Scenario (Realistic)**
+
+    CREATE PROCEDURE purchase
+      @student_id INT,
+      @qty INT,
+      @prod_code VARCHAR(25),
+      @return_code INT = 0 OUTPUT /* Assume transaction doesn’t succeed */
+    AS
+      DECLARE @available MONEY;
+      DECLARE @extended_price MONEY;
+    BEGIN
+      SET @available = (SELECT balance FROM one_card WHERE student_id = @student_id);
+      SET @extended_price = @qty * (SELECT unit_price FROM inventory WHERE prod_code = @prod_code);
+      IF @available >= @extended_price
+      BEGIN
+        UPDATE one_card SET balance = balance – @extended_price WHERE student_id = @student_id;
+        UPDATE inventory SET on_hand = on_hand – @qty WHERE prod_code = @prod_code;
+        UPDATE account SET balance = balance + @extended_price WHERE account_no = 101;
+        SET @return_code = 1;
+      END
+    END
