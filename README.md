@@ -166,3 +166,135 @@
  - To avoid having general constraints in database
  - instead of apply constraint on table, write the condition onto a swparate table and choose not to put the condition wording into column title.
  - e.g., [Wealthy Person, Type cst{billinaire, millionare}, Networth] to [Wealthy Person, Networth][Type, min, max]
+
+ -----
+
+**ACID rules**:
+ - atomicity, consistency, isolation, durability
+ - The properties of database transactions to guarantee data validity despite errors, power failures, mishaps
+
+**Transaction**:
+ - a sequence of database operations that satisfies the ACID properties
+   - which can be perceived as a single logical operation on data
+
+**Atomicity**:
+ - either succeeds completely or fails completely, no middle ground/state
+ - entire transactions fails and left database unchanged if any statement isn't satisfied
+ - deny partial database updates, every update occurs in a whole
+
+**Consistency**:
+ - a transaction can only bring the database from 1 consistent state to another, preserving invariants
+ - any data written to the database must be valid according to all defined rules (constraints, cascades, triggers)
+ - free of illegal transactions, 
+ - referential integrity (PK to FK relationship)
+
+**Isolation**:
+ - main goal of concurrency control
+ - concurrent execution of transactions leave database in same state that would have been obtained if the transactions were executed sequentially
+ - e.g., effects of incomplete transactions are invisible to other transactions
+
+**Durability**:
+ - remain commited transactions even in case of system failure
+ - usually means to record in non-volatile memory
+
+**Atomicity failure**:
+ - money withdrawn from buyer did not correspondingly added to seller
+ - E.g., did not group purchase-sell action with CREATE PROCEDURE AS BEGIN END statement
+
+**Consistency failure**:
+ - A+B=100, however validation check shows A+B=90
+ - must revert transaction
+
+**Isolation failure**:
+ - 2 transations are modifying the same data, but the 2nd transaction happened to process in middle of transaction 1
+ - If transaction 1 fails, then we must rollback transaction 2 to revert this mishap; known as a write-write conflict.
+
+**Durability failure**:
+ - The user was noticed that transaction succeeded, but actully no
+ - E.g., machine crashed before data was registered, causing false positives
+
+**ACID Implementation - Transacion Management**
+ - **Begin transaction & Rollback**:
+BEGIN TRANSACTION;
+  PRINT '--- BEGIN TRANSACTION ---'
+  UPDATE physicians SET specialty = 'Hematology' WHERE physician_id = 2;
+  UPDATE patients SET allergies = 'Almonds' WHERE patient_id = 1251;
+  PRINT '--- DURING TRANSACTION ---'
+  SELECT * FROM physicians WHERE physician_id = 2;
+  SELECT * FROM patients WHERE patient_id = 1251;
+  PRINT '--- ROLLBACK ---'
+ROLLBACK TRANSACTION;
+
+ - **Commit**:
+BEGIN TRANSACTION T1;
+  PRINT '--- BEGIN TRANSACTION ---'
+  UPDATE physicians SET specialty = 'Hematology' WHERE physician_id = 2;
+  UPDATE patients SET allergies = 'Almonds' WHERE patient_id = 1251;
+  PRINT '--- DURING TRANSACTION ---'
+  SELECT * FROM physicians WHERE physician_id = 2;
+  SELECT * FROM patients WHERE patient_id = 1251;
+  PRINT '--- COMMIT ---'
+COMMIT TRANSACTION;
+
+
+**Concurrency Control / avoid integrity, consistency problems**:
+ - simultaneous update from multiple users
+ - late rollback execution causes uncommitted data being handled by other user
+ - inconsistent retrievals - data is being executed and updated by different instances
+
+**Serializability**:
+ - the capability to turn concurrent operation into revertable serial
+
+**Locks manager**:
+ - in multiple levels
+   - db
+   - table
+   - page
+   - row
+   - field
+ - forces "1 person at a time"
+
+**2 phase locking (2PL)**:
+ - Expanding phase: locks are acquired, no locks are released
+ - Shrinking phase: locks are released, no locks are acquired
+ - 2 transactions cannot have conflicting locks
+ - No unlock operation can procede a lock operation in the same transaction
+ - No data are affected until all locks have been obtained
+
+ - Shared lock (S): 1 user to read a record, others could read, no one could modify
+
+ - Update lock (U): a temporary state before exclusive lock
+An update lock can be placed only if no other update or exclusive lock exists
+Which it can be placed on objects that already have shared locks
+
+ - Exclusive lock (X): 1 user to modify a record, others could not read or modify
+
+
+**Which SQL statement results in a shared lock? SELECT**: on rows; 
+
+**Why bother locking a record being read?**
+ - Prevents concurrent change breaks the calculations (e.g., movie thumbnail & description misatched, file size shows negative value)
+
+**Why is an exclusive lock necessary?**
+ - Prevents concurrent write that updates the same row
+
+**Why prevent users from reading the record? INSERT & UPDATE on rows?**
+ - The writing is unfinished, the data is not ready to be modified before the writing is done (lock get then released)
+
+**Deadlock**: situation where 2 transactions blocks each other, both cannot proceed. Prevents false-updates
+
+**Deadlock Control**:
+ - Prevention (best for high probility): abort & reschedule transaction
+ - Detection (best for low probility): roll back and reschedule transaction A, where B proceeds
+ - Avoidance (best for low responsivenes systems)
+
+**Recovery**:
+ - unexpected failing occurs occasionally
+ - hardware, power related
+ - recovery restores database from a inconsisteny state to a previous consistent state
+ - works best with atomic transactions
+
+ - data goes to SQL logs first, and then written to database
+ - the log has either logical operation performed, or before-after images of modified data
+
+**Recovery operation**: restore to latest backup, then applies the transaction log
